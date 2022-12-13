@@ -308,7 +308,7 @@ pub fn mouse_reader(
 			}
 
 			let column = camera.column as f32;
-			let row = camera.row as f32;
+			let row = (camera.row_offset + camera.row) as f32;
 
 			camera.horizontal_scroll = column * text_descriptor.glyph_width;
 			camera.vertical_scroll = row * text_descriptor.glyph_height;
