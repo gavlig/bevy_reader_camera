@@ -7,7 +7,7 @@ pub enum CameraMode {
 	Reader,
 }
 
-#[derive(Component, Default, Clone, Copy)]
+#[derive(Component, Default, Clone, Copy, Debug)]
 pub struct TextDescriptor {
 	pub glyph_width: f32,
 	pub glyph_height: f32,
@@ -37,6 +37,7 @@ impl Plugin for ReaderCameraPlugin {
 			.add_system(systems::mouse_fly)
 			.add_system(systems::mouse_follow)
 			.add_system(systems::mouse_reader)
-			;
+			.add_system(systems::calc_visible_rows)
+		;
 	}
 }

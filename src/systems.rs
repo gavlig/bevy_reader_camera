@@ -1,7 +1,7 @@
 use bevy :: {
 	prelude	:: { * },
 	input	:: mouse :: { MouseMotion, MouseScrollUnit, MouseWheel },
-	render	:: camera :: { * }
+	render	:: { camera :: { * }, primitives :: Frustum }
 };
 
 use bevy_mod_picking :: { * };
@@ -390,6 +390,28 @@ pub fn mouse_reader(
 				.max(1.0);
 
 			camera.zoom = camera.zoom.lerp(target_zoom, inertia);
+		}
+	}
+}
+
+pub fn calc_visible_rows(
+	mut q_camera : Query<(&mut ReaderCamera, &Frustum, &Transform)>,
+		q_target : Query<(&TextDescriptor, &Transform)>,
+)
+{
+	for (mut camera_reader, frustum, camera_transform) in q_camera.iter_mut() {
+		if camera_reader.mode != CameraMode::Reader {
+			continue;
+		}
+
+		{ 
+			let target = camera_reader.target.unwrap();
+			let (text_descriptor, target_transform) = q_target.get(target).unwrap();
+			
+			let mut center_pos = camera_transform.translation;
+			center_pos.z = target_transform.translation.z;
+			
+			camera_reader.visible_rows = binary_search_visible_rows(center_pos, frustum, text_descriptor);
 		}
 	}
 }
