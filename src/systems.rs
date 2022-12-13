@@ -32,7 +32,7 @@ pub fn init_camera(
 		return;
 	}
 
-	for (entity, _options) in query.iter() {
+	for (entity, _camera) in query.iter() {
 		commands.entity(entity)
 		.with_children(|parent| {
 			// rotating a child caster so that raycast points forwards, assuming there is something in front of camera
@@ -163,11 +163,11 @@ pub fn mouse_follow(
 		time						: Res<Time>,
 	mut mouse_motion_event_reader	: EventReader<MouseMotion>,
 	mut mouse_wheel_event_reader	: EventReader<MouseWheel>,
-	mut q_fly_camera				: Query<(&mut ReaderCamera, &mut Transform)>,
+	mut q_camera					: Query<(&mut ReaderCamera, &mut Transform)>,
 		q_target					: Query<&Transform, Without<ReaderCamera>>,
 )
 {
-	for (mut camera, mut camera_transform) in q_fly_camera.iter_mut() {
+	for (mut camera, mut camera_transform) in q_camera.iter_mut() {
 		if camera.mode != CameraMode::Follow {
 			continue
 		}
@@ -228,7 +228,7 @@ pub fn mouse_reader(
 		time						: Res<Time>,
 	mut mouse_motion_event_reader	: EventReader<MouseMotion>,
 	mut mouse_wheel_event_reader	: EventReader<MouseWheel>,
-	mut q_flycam					: Query<(&mut ReaderCamera, &mut Transform, &Children)>,
+	mut q_camera					: Query<(&mut ReaderCamera, &mut Transform, &Children)>,
 		q_center_pick_raycast		: Query<&PickingObject, With<CenterPickRaycast>>,
 		q_target					: Query<(&Transform, &TextDescriptor), Without<ReaderCamera>>,
 		q_center_pick				: Query<Entity, With<CenterPick>>,
@@ -245,7 +245,7 @@ pub fn mouse_reader(
 
 	let delta_seconds = time.delta_seconds();
 
-	for (mut camera, mut camera_transform, children) in q_flycam.iter_mut() {
+	for (mut camera, mut camera_transform, children) in q_camera.iter_mut() {
 		if camera.mode != CameraMode::Reader {
 			continue;
 		}
@@ -257,13 +257,13 @@ pub fn mouse_reader(
 
 		// check intersections on child raycaster and mark them as CenterPick
 		for child in children.iter() {
-			let p = q_center_pick_raycast.get(*child);
-			if p.is_err() {
+			let pick = q_center_pick_raycast.get(*child);
+			if pick.is_err() {
 				continue;
 			}
 
-			let p = p.unwrap();
-			for (e_ref, _data) in p.intersections().iter() {
+			let pick = pick.unwrap();
+			for (e_ref, _data) in pick.intersections().iter() {
 				commands.entity(*e_ref).insert(CenterPick);
 			}
 		}
