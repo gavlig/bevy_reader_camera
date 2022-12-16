@@ -395,11 +395,11 @@ pub fn mouse_reader(
 }
 
 pub fn calc_visible_rows(
-	mut q_camera : Query<(&mut ReaderCamera, &Frustum, &Transform)>,
+	mut q_camera : Query<(&mut ReaderCamera, &GlobalTransform, &Projection)>,
 		q_target : Query<(&TextDescriptor, &Transform)>,
 )
 {
-	for (mut camera_reader, frustum, camera_transform) in q_camera.iter_mut() {
+	for (mut camera_reader, global_transform, camera_projection) in q_camera.iter_mut() {
 		if camera_reader.mode != CameraMode::Reader {
 			continue;
 		}
@@ -408,10 +408,20 @@ pub fn calc_visible_rows(
 			let target = camera_reader.target.unwrap();
 			let (text_descriptor, target_transform) = q_target.get(target).unwrap();
 			
-			let mut center_pos = camera_transform.translation;
+			// calculating frustum manually for now because using cached introduces small desync between frustum and camera position
+			let camera_translation = Vec3::Z * global_transform.translation().z;
+			let projection_matrix = camera_projection.get_projection_matrix() * global_transform.compute_matrix().inverse();
+			let frustum = Frustum::from_view_projection(
+				&projection_matrix,
+				&global_transform.translation(),
+				&global_transform.back(),
+				camera_projection.far(),
+			);
+			
+			let mut center_pos = global_transform.translation();
 			center_pos.z = target_transform.translation.z;
 			
-			camera_reader.visible_rows = binary_search_visible_rows(center_pos, frustum, text_descriptor);
+			camera_reader.visible_rows = binary_search_visible_rows(center_pos, &frustum, text_descriptor);
 		}
 	}
 }
