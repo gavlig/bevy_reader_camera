@@ -62,12 +62,13 @@ pub fn binary_search_visible_rows(
 		};
 		
 		let is_inside = frustum.intersects_sphere(&sphere_from_glyph, /*intersect_far=*/false);
+		let to_return = (half_offset - 2) * 2 + 1;
 		
 		if is_inside {
 			// check one row above, if it's outside frustum we found the border
 			sphere_from_glyph.center.y += row_height;
 			if !frustum.intersects_sphere(&sphere_from_glyph, /*intersect_far=*/false) {
-				return half_offset * 2;
+				return to_return;
 			} else {
 				half_offset_min = half_offset + 1;
 			}
@@ -75,7 +76,7 @@ pub fn binary_search_visible_rows(
 			// check one row below, if it's inside frustum we found the border
 			sphere_from_glyph.center.y -= row_height;
 			if frustum.intersects_sphere(&sphere_from_glyph, /*intersect_far=*/false) {
-				return half_offset * 2;
+				return to_return;
 			} else {
 				half_offset_max = half_offset - 1;
 			}
