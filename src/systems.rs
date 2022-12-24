@@ -271,8 +271,8 @@ pub fn mouse_reader(
 		let yaw_radians = camera.yaw.to_radians();
 		let pitch_radians = camera.pitch.to_radians();
 
-		{ // translation
-			let target = camera.target.unwrap();
+		// translation
+		if let Some(target) = camera.target { 
 			let (target_transform, text_descriptor) = q_target.get(target).unwrap();
 
 			if camera.enabled_translation {
@@ -404,12 +404,10 @@ pub fn calc_visible_rows(
 			continue;
 		}
 
-		{ 
-			let target = camera_reader.target.unwrap();
+		if let Some(target) = camera_reader.target { 
 			let (text_descriptor, target_transform) = q_target.get(target).unwrap();
 			
 			// calculating frustum manually for now because using cached introduces small desync between frustum and camera position
-			let camera_translation = Vec3::Z * global_transform.translation().z;
 			let projection_matrix = camera_projection.get_projection_matrix() * global_transform.compute_matrix().inverse();
 			let frustum = Frustum::from_view_projection(
 				&projection_matrix,
