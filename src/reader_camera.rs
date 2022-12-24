@@ -114,6 +114,8 @@ pub struct ReaderCamera {
 	pub enabled_zoom: bool,
 
 	///
+	pub entity: Entity,
+	///
 	pub target: Option<Entity>,
 }
 
@@ -174,6 +176,7 @@ impl Default for ReaderCamera {
 
 			invert_y							: false,
 			pitch_changed						: false,
+			entity								: Entity::from_raw(0),
 			target								: None,
 		}
 	}
