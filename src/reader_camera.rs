@@ -129,7 +129,7 @@ impl Default for ReaderCamera {
 			zoom_sensitivity					: 0.15,
 			vertical_scroll_easing_seconds		: 5.0,
 			horizontal_scroll_easing_seconds	: 6.0,
-			translation_easing_seconds			: 0.2,
+			translation_easing_seconds			: 0.1,
 			rotation_easing_seconds				: 1.0,
 			zoom_easing_seconds					: 0.01,
 			lean_easing_seconds					: 1.0,
