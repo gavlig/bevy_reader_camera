@@ -32,7 +32,6 @@ pub struct ReaderCameraPlugin;
 impl Plugin for ReaderCameraPlugin {
 	fn build(&self, app: &mut App) {
 		app
-			.add_system(systems::init_camera)
 			.add_system(systems::keyboard_fly)
 			.add_system(systems::mouse_fly)
 			.add_system(systems::mouse_follow)

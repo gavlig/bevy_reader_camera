@@ -4,52 +4,12 @@ use bevy :: {
 	render	:: { camera :: { * }, primitives :: Frustum }
 };
 
-use bevy_mod_picking :: { * };
 use lerp :: Lerp;
 
 use super :: CameraMode;
 use super :: TextDescriptor;
 use super :: reader_camera :: { * };
 use super :: util :: { * };
-
-type PickingObject = bevy_mod_picking::RaycastSource<PickingRaycastSet>;
-
-#[derive(Component)]
-pub struct CenterPick;
-
-#[derive(Component)]
-pub struct CenterPickRaycast;
-
-#[derive(Component)]
-pub struct CenterPickRaycastParent;
-
-pub fn init_camera(
-		query	: Query<(Entity, &ReaderCamera), Without<CenterPickRaycastParent>>,
-	mut commands: Commands
-)
-{
-	if query.is_empty() {
-		return;
-	}
-
-	for (entity, _camera) in query.iter() {
-		commands.entity(entity)
-		.with_children(|parent| {
-			// rotating a child caster so that raycast points forwards, assuming there is something in front of camera
-			let mut transform	= Transform::default();
-			transform.look_at	(-Vec3::Z, Vec3::Y);
-
-			let _picking_child =
-			parent.spawn(TransformBundle { local : transform, ..default() })
-			.insert(PickingObject::new_transform_empty())
-			.insert(CenterPickRaycast)
-			.id()
-			;
-		})
-		.insert(CenterPickRaycastParent)
-		;
-	}
-}
 
 pub fn keyboard_fly(
 		time		: Res<Time>,
@@ -229,9 +189,7 @@ pub fn mouse_reader(
 	mut mouse_motion_event_reader	: EventReader<MouseMotion>,
 	mut mouse_wheel_event_reader	: EventReader<MouseWheel>,
 	mut q_camera					: Query<(&mut ReaderCamera, &mut Transform, &Children)>,
-		q_center_pick_raycast		: Query<&PickingObject, With<CenterPickRaycast>>,
 		q_target					: Query<(&Transform, &TextDescriptor), Without<ReaderCamera>>,
-		q_center_pick				: Query<Entity, With<CenterPick>>,
 	mut commands					: Commands
 )
 {
@@ -248,24 +206,6 @@ pub fn mouse_reader(
 	for (mut camera, mut camera_transform, children) in q_camera.iter_mut() {
 		if camera.mode != CameraMode::Reader {
 			continue;
-		}
-
-		// cleanup previous CenterPick
-		for e in q_center_pick.iter() {
-			commands.entity(e).remove::<CenterPick>();
-		}
-
-		// check intersections on child raycaster and mark them as CenterPick
-		for child in children.iter() {
-			let pick = q_center_pick_raycast.get(*child);
-			if pick.is_err() {
-				continue;
-			}
-
-			let pick = pick.unwrap();
-			for (e_ref, _data) in pick.intersections().iter() {
-				commands.entity(*e_ref).insert(CenterPick);
-			}
 		}
 
 		let yaw_radians = camera.yaw.to_radians();
