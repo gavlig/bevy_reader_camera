@@ -8,17 +8,21 @@ pub struct ReaderCamera {
 	pub accel: f32,
 	/// The maximum speed the ReaderCamera can move at. Defaults to `0.5`
 	pub max_speed: f32,
-	/// The sensitivity of the ReaderCamera's motion based on mouse movement. Defaults to `3.0`
-	pub sensitivity: f32,
-	/// The amount of deceleration to apply to the camera's motion. Defaults to `1.0`
-	pub friction: f32,
+	///
+	pub sensitivity : f32,
+	/// 
+	pub swipe_sensitivity: f32,
+	///
+	pub scroll_sensitivity: f32,
 	///
 	pub zoom_sensitivity: f32,
+	/// The amount of deceleration to apply to the camera's motion. Defaults to `1.0`
+	pub friction: f32,
 
 	///
-	pub vertical_scroll_easing_seconds: f32,
+	pub scroll_easing_seconds: f32,
 	///
-	pub horizontal_scroll_easing_seconds: f32,
+	pub swipe_easing_seconds: f32,
 	///
 	pub translation_easing_seconds: f32,
 	///
@@ -44,7 +48,9 @@ pub struct ReaderCamera {
 	///
 	pub row: u32,
 	///
-	pub row_offset: u32,
+	pub row_offset_in: u32,
+	///
+	pub row_offset_out: i32,
 	///
 	pub visible_rows: u32,
 	///
@@ -124,11 +130,13 @@ impl Default for ReaderCamera {
 		Self {
 			accel								: 1.5,
 			max_speed							: 0.5,
-			sensitivity							: 3.0,
 			friction							: 1.0,
+			sensitivity							: 3.0,
+			swipe_sensitivity					: 0.0,
+			scroll_sensitivity					: 5.0,
 			zoom_sensitivity					: 0.15,
-			vertical_scroll_easing_seconds		: 5.0,
-			horizontal_scroll_easing_seconds	: 6.0,
+			scroll_easing_seconds				: 5.0,
+			swipe_easing_seconds				: 6.0,
 			translation_easing_seconds			: 0.1,
 			rotation_easing_seconds				: 1.0,
 			zoom_easing_seconds					: 0.01,
@@ -141,7 +149,8 @@ impl Default for ReaderCamera {
 			horizontal_scroll					: 0.0,
 			column								: 51,
 			row									: 19,
-			row_offset							: 0,
+			row_offset_in						: 0,
+			row_offset_out						: 0,
 			visible_rows						: 40,
 			column_scroll_accum					: 0.0,
 			row_scroll_accum					: 0.0,

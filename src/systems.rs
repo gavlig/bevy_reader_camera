@@ -216,20 +216,18 @@ pub fn mouse_reader(
 			let (target_transform, text_descriptor) = q_target.get(target).unwrap();
 
 			if camera.enabled_translation {
-				let delta_x = delta.x;
-				let delta_y = delta.y;
+				let delta_x = delta.x * camera.swipe_sensitivity;
+				let delta_y = delta.y * camera.scroll_sensitivity;
 
-				camera.row_scroll_accum += delta_y * (delta_seconds / camera.vertical_scroll_easing_seconds);
-				camera.column_scroll_accum += delta_x * (delta_seconds / camera.horizontal_scroll_easing_seconds);
+				camera.row_scroll_accum += delta_y * (delta_seconds / camera.scroll_easing_seconds);
+				camera.column_scroll_accum += delta_x * (delta_seconds / camera.swipe_easing_seconds);
 			}
 
 			// we keep row_scroll_accum in range of 0..glyph_height
 			while camera.row_scroll_accum.abs() > text_descriptor.glyph_height {
 				let delta_one = delta.y.signum();
 				if camera.enabled_translation && (camera.row > 0 || delta_one.is_sign_positive()) {
-					camera.row = (camera.row as f32 + delta_one) as u32;
-					// clamping
-					camera.row = camera.row.min(text_descriptor.rows);
+					camera.row_offset_out = delta_one as i32;
 				}
 
 				camera.row_scroll_accum -= text_descriptor.glyph_height * camera.row_scroll_accum.signum();
@@ -247,9 +245,12 @@ pub fn mouse_reader(
 				camera.column_scroll_accum -= text_descriptor.glyph_width * camera.column_scroll_accum.signum();
 			}
 
-			let column = camera.column as f32;
-			let row = (camera.row_offset + camera.row) as f32;
-
+			let column	= camera.column as f32;
+			
+			let row_min = camera.visible_rows / 2 - 1;
+			let row_max = text_descriptor.rows - (row_min / 2);
+			let row		= (camera.row + camera.row_offset_in).clamp(row_min, row_max) as f32;
+			
 			camera.horizontal_scroll = column * text_descriptor.glyph_width;
 			camera.vertical_scroll = row * text_descriptor.glyph_height;
 
