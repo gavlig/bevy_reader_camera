@@ -188,9 +188,8 @@ pub fn mouse_reader(
 		time						: Res<Time>,
 	mut mouse_motion_event_reader	: EventReader<MouseMotion>,
 	mut mouse_wheel_event_reader	: EventReader<MouseWheel>,
-	mut q_camera					: Query<(&mut ReaderCamera, &mut Transform, &Children)>,
+	mut q_camera					: Query<(&mut ReaderCamera, &mut Transform)>,
 		q_target					: Query<(&Transform, &TextDescriptor), Without<ReaderCamera>>,
-	mut commands					: Commands
 )
 {
 	let mut delta: Vec2 = Vec2::ZERO;
@@ -203,7 +202,7 @@ pub fn mouse_reader(
 
 	let delta_seconds = time.delta_seconds();
 
-	for (mut camera, mut camera_transform, children) in q_camera.iter_mut() {
+	for (mut camera, mut camera_transform) in q_camera.iter_mut() {
 		if camera.mode != CameraMode::Reader {
 			continue;
 		}
