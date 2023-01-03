@@ -310,26 +310,26 @@ pub fn mouse_reader(
 		}
 
 		{ // zoom
-			let mut scalar = 1.0;
+			let mut scalar = 0.0;
 
 			if camera.enabled_zoom {
 				let pixels_per_line = 53.0;
 				for event in mouse_wheel_event_reader.iter() {
 					// scale the event magnitude per pixel or per line
 					let scroll_amount = match event.unit {
-						MouseScrollUnit::Line => event.y,
-						MouseScrollUnit::Pixel => event.y / pixels_per_line,
+						MouseScrollUnit::Line => { event.y },
+						MouseScrollUnit::Pixel => { event.y / pixels_per_line },
 					};
-					scalar *= 1.0 - scroll_amount * camera.zoom_sensitivity;
+					scalar = -scroll_amount * camera.zoom_sensitivity;
 				}
 			}
 
 			let inertia = (delta_seconds / camera.zoom_easing_seconds).min(1.0);
-			let target_zoom = (scalar * camera.zoom)
+			camera.target_zoom = (scalar + camera.target_zoom)
 				.min(100.0)
-				.max(1.0);
+				.max(3.0);
 
-			camera.zoom = camera.zoom.lerp(target_zoom, inertia);
+			camera.zoom = camera.zoom.lerp(camera.target_zoom, inertia);
 		}
 	}
 }

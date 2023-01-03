@@ -40,6 +40,8 @@ pub struct ReaderCamera {
 	///
 	pub zoom: f32,
 	///
+	pub target_zoom: f32,
+	///
 	pub vertical_scroll: f32,
 	///
 	pub horizontal_scroll: f32,
@@ -134,7 +136,7 @@ impl Default for ReaderCamera {
 			sensitivity							: 3.0,
 			swipe_sensitivity					: 0.0,
 			scroll_sensitivity					: 5.0,
-			zoom_sensitivity					: 0.15,
+			zoom_sensitivity					: 1.0,
 			scroll_easing_seconds				: 5.0,
 			swipe_easing_seconds				: 6.0,
 			translation_easing_seconds			: 0.1,
@@ -144,7 +146,8 @@ impl Default for ReaderCamera {
 			lean_reset_easing_seconds			: 0.2,
 			pitch								: 0.0,
 			yaw									: 0.0,
-			zoom								: 6.7,
+			zoom								: 7.0,
+			target_zoom							: 7.0,
 			vertical_scroll						: 0.0,
 			horizontal_scroll					: 0.0,
 			column								: 51,
