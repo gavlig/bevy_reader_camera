@@ -352,7 +352,6 @@ pub fn calc_visible_rows(
 			let camera_pos = camera_transform_z_only.translation_mut();
 			camera_pos.x = 0.0;
 			camera_pos.y = 0.0;
-			let camera_poss = camera_pos.clone();
 			
 			// calculating frustum manually for now because using cached introduces small desync between frustum and camera position
 			let projection_matrix = camera_projection.get_projection_matrix() * camera_transform_z_only.compute_matrix().inverse();
@@ -375,10 +374,9 @@ pub fn calc_visible_rows(
 			// Ax + By + Cz + D = 0
 			
 			let row_height = text_descriptor.glyph_height;
-			let column_width = text_descriptor.glyph_width;
+			let _column_width = text_descriptor.glyph_width;
 			
-			let x = 0.0;
-			let z = target_transform.translation.z + 0.15;
+			let z = target_transform.translation.z + 0.05;
 			
 			let plane_top = &frustum.planes[3].normal_d();
 			let y_top = (-plane_top.w - plane_top.z * z) / plane_top.y;
@@ -386,7 +384,7 @@ pub fn calc_visible_rows(
 			camera_reader.y_top = y_top;
 			
 			let plane_bottom = &frustum.planes[2].normal_d();
-			let mut y_bottom = (-plane_bottom.w - plane_bottom.z * z) / plane_bottom.y;
+			let y_bottom = (-plane_bottom.w - plane_bottom.z * z) / plane_bottom.y;
 			
 			camera_reader.y_bottom = y_bottom;
 			
