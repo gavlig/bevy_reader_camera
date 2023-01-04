@@ -54,7 +54,15 @@ pub struct ReaderCamera {
 	///
 	pub row_offset_out: i32,
 	///
-	pub visible_rows: u32,
+	pub visible_rows: f32,
+	///
+	pub y_top: f32,
+	///
+	pub y_bottom: f32,
+	///
+	pub x_left: f32,
+	///
+	pub x_right: f32,
 	///
 	pub column_scroll_accum: f32,
 	///
@@ -154,7 +162,11 @@ impl Default for ReaderCamera {
 			row									: 19,
 			row_offset_in						: 0,
 			row_offset_out						: 0,
-			visible_rows						: 40,
+			visible_rows						: 40.0,
+			y_top								: 0.0,
+			y_bottom							: 0.0,
+			x_left								: 0.0,
+			x_right								: 0.0,
 			column_scroll_accum					: 0.0,
 			row_scroll_accum					: 0.0,
 			column_scroll_mouse_quantized		: false,

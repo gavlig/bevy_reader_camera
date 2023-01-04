@@ -246,9 +246,9 @@ pub fn mouse_reader(
 
 			let column	= camera.column as f32;
 			
-			let row_min = camera.visible_rows / 2 - 1;
-			let row_max = text_descriptor.rows - (row_min / 2);
-			let row		= (camera.row + camera.row_offset_in).clamp(row_min, row_max) as f32;
+			let row_min = camera.visible_rows / 2.0 - 1.0;
+			let row_max = text_descriptor.rows as f32 - (row_min / 2.0);
+			let row		= ((camera.row + camera.row_offset_in) as f32).clamp(row_min, row_max);
 			
 			camera.horizontal_scroll = column * text_descriptor.glyph_width;
 			camera.vertical_scroll = row * text_descriptor.glyph_height;
@@ -339,7 +339,7 @@ pub fn calc_visible_rows(
 		q_target : Query<(&TextDescriptor, &Transform)>,
 )
 {
-	for (mut camera_reader, global_transform, camera_projection) in q_camera.iter_mut() {
+	for (mut camera_reader, camera_transform, camera_projection) in q_camera.iter_mut() {
 		if camera_reader.mode != CameraMode::Reader {
 			continue;
 		}
@@ -347,19 +347,60 @@ pub fn calc_visible_rows(
 		if let Some(target) = camera_reader.target { 
 			let (text_descriptor, target_transform) = q_target.get(target).unwrap();
 			
+			// we remove x and y since the amount of visible rows should depend on how much we scrolled, just how far the camera is from the surface with text
+			let mut camera_transform_z_only = camera_transform.clone();
+			let camera_pos = camera_transform_z_only.translation_mut();
+			camera_pos.x = 0.0;
+			camera_pos.y = 0.0;
+			let camera_poss = camera_pos.clone();
+			
 			// calculating frustum manually for now because using cached introduces small desync between frustum and camera position
-			let projection_matrix = camera_projection.get_projection_matrix() * global_transform.compute_matrix().inverse();
+			let projection_matrix = camera_projection.get_projection_matrix() * camera_transform_z_only.compute_matrix().inverse();
 			let frustum = Frustum::from_view_projection(
 				&projection_matrix,
-				&global_transform.translation(),
-				&global_transform.back(),
+				&camera_transform_z_only.translation(),
+				&camera_transform_z_only.back(),
 				camera_projection.far(),
 			);
 			
-			let mut center_pos = global_transform.translation();
-			center_pos.z = target_transform.translation.z;
+			// in frustum:
+			// plane 0 is left
+			// plane 1 is right
+			// plane 2 is bottom
+			// plane 3 is top
+			// plane 4 is near (or back)
+			// plane 5 is far
 			
-			camera_reader.visible_rows = binary_search_visible_rows(center_pos, &frustum, text_descriptor);
+			// plane equation by three vertices
+			// Ax + By + Cz + D = 0
+			
+			let row_height = text_descriptor.glyph_height;
+			let column_width = text_descriptor.glyph_width;
+			
+			let x = 0.0;
+			let z = target_transform.translation.z + 0.15;
+			
+			let plane_top = &frustum.planes[3].normal_d();
+			let y_top = (-plane_top.w - plane_top.z * z) / plane_top.y;
+			
+			camera_reader.y_top = y_top;
+			
+			let plane_bottom = &frustum.planes[2].normal_d();
+			let mut y_bottom = (-plane_bottom.w - plane_bottom.z * z) / plane_bottom.y;
+			
+			camera_reader.y_bottom = y_bottom;
+			
+			let plane_left = &frustum.planes[0].normal_d();
+			let x_left = (-plane_left.w - plane_left.z * z) / plane_left.y;
+			
+			camera_reader.x_left = x_left;
+			
+			let plane_right = &frustum.planes[1].normal_d();
+			let x_right = (-plane_right.w - plane_right.z * z) / plane_right.y;
+			
+			camera_reader.x_right = x_right;
+			
+			camera_reader.visible_rows = (y_top - y_bottom) / row_height;
 		}
 	}
 }

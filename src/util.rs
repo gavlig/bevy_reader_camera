@@ -1,7 +1,4 @@
 use bevy :: prelude :: *;
-use bevy :: render :: primitives :: { Sphere, Frustum };
-
-use super :: TextDescriptor;
 
 pub fn movement_axis(
 	input: &Res<Input<KeyCode>>,
@@ -41,49 +38,4 @@ pub fn unit_vector_from_yaw_and_pitch(yaw: f32, pitch: f32) -> Vec3 {
     let pitch_axis = ray.cross(Vec3::Y);
 
     Mat3::from_axis_angle(pitch_axis, pitch) * ray
-}
-
-pub fn binary_search_visible_rows(
-	center			: Vec3,
-	frustum			: &Frustum,
-	text_desc		: &TextDescriptor,
-) -> u32
-{
-	let mut half_offset		= 20 as u32; // assume we have 40 rows visible by default
-	
-	let row_height	= text_desc.glyph_height;
-	let mut half_offset_min	= 1 as u32;
-	let mut half_offset_max	= 5000 as u32; // not usable but could be pretty to render
-	
-	while half_offset_min <= half_offset_max {
-		let mut sphere_from_glyph = Sphere {
-			center: (center + (Vec3::Y * row_height * half_offset as f32)).into(),
-			radius: row_height,
-		};
-		
-		let is_inside = frustum.intersects_sphere(&sphere_from_glyph, /*intersect_far=*/false);
-		let to_return = (half_offset - 2) * 2 + 1;
-		
-		if is_inside {
-			// check one row above, if it's outside frustum we found the border
-			sphere_from_glyph.center.y += row_height;
-			if !frustum.intersects_sphere(&sphere_from_glyph, /*intersect_far=*/false) {
-				return to_return;
-			} else {
-				half_offset_min = half_offset + 1;
-			}
-		} else {
-			// check one row below, if it's inside frustum we found the border
-			sphere_from_glyph.center.y -= row_height;
-			if frustum.intersects_sphere(&sphere_from_glyph, /*intersect_far=*/false) {
-				return to_return;
-			} else {
-				half_offset_max = half_offset - 1;
-			}
-		}
-		
-		half_offset = half_offset_min + (half_offset_max - half_offset_min) / 2;
-	}
-	
-	return 1;
 }
