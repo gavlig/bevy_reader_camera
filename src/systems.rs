@@ -399,6 +399,8 @@ pub fn calc_visible_rows(
 			camera_reader.x_right = x_right;
 			
 			camera_reader.visible_rows = (y_top - y_bottom) / row_height;
+			
+			camera_reader.row = (camera_reader.visible_rows / 2.0).floor() as u32;
 		}
 	}
 }
