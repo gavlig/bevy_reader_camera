@@ -206,6 +206,29 @@ pub fn mouse_reader(
 		if camera.mode != CameraMode::Reader {
 			continue;
 		}
+		
+		{ // zoom
+			let mut scalar = 0.0;
+
+			if camera.enabled_zoom {
+				let pixels_per_line = 53.0;
+				for event in mouse_wheel_event_reader.iter() {
+					// scale the event magnitude per pixel or per line
+					let scroll_amount = match event.unit {
+						MouseScrollUnit::Line => { event.y },
+						MouseScrollUnit::Pixel => { event.y / pixels_per_line },
+					};
+					scalar = -scroll_amount * camera.zoom_sensitivity;
+				}
+			}
+
+			let inertia = (delta_seconds / camera.zoom_easing_seconds).min(1.0);
+			camera.target_zoom = (scalar + camera.target_zoom)
+				.min(100.0)
+				.max(3.0);
+
+			camera.zoom = camera.zoom.lerp(camera.target_zoom, inertia);
+		}
 
 		let yaw_radians = camera.yaw.to_radians();
 		let pitch_radians = camera.pitch.to_radians();
@@ -307,29 +330,6 @@ pub fn mouse_reader(
 
 			let inertia = (delta_seconds / camera.rotation_easing_seconds).min(1.0);
 			camera_transform.rotation = from.slerp(to, inertia);
-		}
-
-		{ // zoom
-			let mut scalar = 0.0;
-
-			if camera.enabled_zoom {
-				let pixels_per_line = 53.0;
-				for event in mouse_wheel_event_reader.iter() {
-					// scale the event magnitude per pixel or per line
-					let scroll_amount = match event.unit {
-						MouseScrollUnit::Line => { event.y },
-						MouseScrollUnit::Pixel => { event.y / pixels_per_line },
-					};
-					scalar = -scroll_amount * camera.zoom_sensitivity;
-				}
-			}
-
-			let inertia = (delta_seconds / camera.zoom_easing_seconds).min(1.0);
-			camera.target_zoom = (scalar + camera.target_zoom)
-				.min(100.0)
-				.max(3.0);
-
-			camera.zoom = camera.zoom.lerp(camera.target_zoom, inertia);
 		}
 	}
 }
