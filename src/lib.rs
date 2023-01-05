@@ -36,8 +36,8 @@ impl Plugin for ReaderCameraPlugin {
 			.add_system(systems::mouse_fly)
 			.add_system(systems::mouse_follow)
 			
-			.add_system_to_stage(CoreStage::PreUpdate, systems::mouse_reader)
-			.add_system_to_stage(CoreStage::PreUpdate, systems::calc_visible_rows) // PreUpdate because Frustum gets desynced with camera transform and that makes the amount of visible rows jitter
+			.add_system_to_stage(CoreStage::PreUpdate, systems::calc_frustum_data.label("calc_frustum_data")) // PreUpdate because Frustum gets desynced with camera transform and that makes the amount of visible rows jitter
+			.add_system_to_stage(CoreStage::PreUpdate, systems::mouse_reader.after("calc_frustum_data"))
 		;
 	}
 }

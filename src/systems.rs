@@ -1,7 +1,8 @@
 use bevy :: {
 	prelude	:: { * },
 	input	:: mouse :: { MouseMotion, MouseScrollUnit, MouseWheel },
-	render	:: { camera :: { * }, primitives :: Frustum }
+	render	:: { camera :: { * }, primitives :: Frustum },
+	math	:: { Vec3A }
 };
 
 use lerp :: Lerp;
@@ -188,7 +189,7 @@ pub fn mouse_reader(
 		time						: Res<Time>,
 	mut mouse_motion_event_reader	: EventReader<MouseMotion>,
 	mut mouse_wheel_event_reader	: EventReader<MouseWheel>,
-	mut q_camera					: Query<(&mut ReaderCamera, &mut Transform)>,
+	mut q_camera					: Query<(&mut ReaderCamera, &mut Transform, &Projection)>,
 		q_target					: Query<(&Transform, &TextDescriptor), Without<ReaderCamera>>,
 )
 {
@@ -202,14 +203,19 @@ pub fn mouse_reader(
 
 	let delta_seconds = time.delta_seconds();
 
-	for (mut camera, mut camera_transform) in q_camera.iter_mut() {
+	for (mut camera, mut camera_transform, camera_projection) in q_camera.iter_mut() {
 		if camera.mode != CameraMode::Reader {
 			continue;
 		}
 		
+		if camera.target.is_none() {
+			continue;
+		}
+		
+		let mut row = 0.0;
+		let mut zoom_scalar = 0.0;
+		
 		{ // zoom
-			let mut scalar = 0.0;
-
 			if camera.enabled_zoom {
 				let pixels_per_line = 53.0;
 				for event in mouse_wheel_event_reader.iter() {
@@ -218,12 +224,12 @@ pub fn mouse_reader(
 						MouseScrollUnit::Line => { event.y },
 						MouseScrollUnit::Pixel => { event.y / pixels_per_line },
 					};
-					scalar = -scroll_amount * camera.zoom_sensitivity;
+					zoom_scalar = -scroll_amount * camera.zoom_sensitivity;
 				}
 			}
 
 			let inertia = (delta_seconds / camera.zoom_easing_seconds).min(1.0);
-			camera.target_zoom = (scalar + camera.target_zoom)
+			camera.target_zoom = (zoom_scalar + camera.target_zoom)
 				.min(100.0)
 				.max(3.0);
 
@@ -248,7 +254,7 @@ pub fn mouse_reader(
 			// we keep row_scroll_accum in range of 0..glyph_height
 			while camera.row_scroll_accum.abs() > text_descriptor.glyph_height {
 				let delta_one = delta.y.signum();
-				if camera.enabled_translation && (camera.row > 0 || delta_one.is_sign_positive()) {
+				if camera.enabled_translation && (camera.row_offset_in > 0 || delta_one.is_sign_positive()) {
 					camera.row_offset_out = delta_one as i32;
 				}
 
@@ -269,9 +275,10 @@ pub fn mouse_reader(
 
 			let column	= camera.column as f32;
 			
-			let row_min = camera.visible_rows / 2.0 - 1.0;
-			let row_max = text_descriptor.rows as f32 - (row_min / 2.0);
-			let row		= ((camera.row + camera.row_offset_in) as f32).clamp(row_min, row_max);
+			let row_min = 0.0;
+			let row_max = text_descriptor.rows as f32;
+			let visible_rows = (camera.visible_rows / 2.0).floor();
+			row			= (camera.row_offset_in as f32 + visible_rows);
 			
 			camera.horizontal_scroll = column * text_descriptor.glyph_width;
 			camera.vertical_scroll = row * text_descriptor.glyph_height;
@@ -331,10 +338,26 @@ pub fn mouse_reader(
 			let inertia = (delta_seconds / camera.rotation_easing_seconds).min(1.0);
 			camera_transform.rotation = from.slerp(to, inertia);
 		}
+		
+		if zoom_scalar != 0.0 {
+			let (target_transform, text_descriptor) = q_target.get(camera.target.unwrap()).unwrap();
+			
+			let mut camera_target_transform = camera_transform.clone();
+			camera_target_transform.translation = Vec3::Z * (camera.target_zoom + target_transform.translation.z);
+			
+			let visible_rows_new = calc_visible_rows(&camera_target_transform, camera_projection, text_descriptor, target_transform);
+			let visible_rows_old = camera.visible_rows;
+			
+			let target_offset_in = row - (visible_rows_new / 2.0).floor();
+			
+			camera.row_offset_out = target_offset_in as i32 - camera.row_offset_in as i32;
+			
+			// println!("row: {} offset_in0: {} visible_rows_old: {} offset_in1: {} visible_rows_new: {} camera z: {} row offset out would be {}", row, camera.row_offset_in, target_offset_in, visible_rows_old, visible_rows_new, camera_target_transform.translation.z, camera.row_offset_out);
+		}
 	}
 }
 
-pub fn calc_visible_rows(
+pub fn calc_frustum_data(
 	mut q_camera : Query<(&mut ReaderCamera, &GlobalTransform, &Projection)>,
 		q_target : Query<(&TextDescriptor, &Transform)>,
 )
@@ -350,8 +373,9 @@ pub fn calc_visible_rows(
 			// we remove x and y since the amount of visible rows should depend on how much we scrolled, just how far the camera is from the surface with text
 			let mut camera_transform_z_only = camera_transform.clone();
 			let camera_pos = camera_transform_z_only.translation_mut();
-			camera_pos.x = 0.0;
-			camera_pos.y = 0.0;
+			*camera_pos = Vec3A::Z * camera_reader.target_zoom + target_transform.translation.z;
+			
+			// let camera_pos_z = camera_pos.z;
 			
 			// calculating frustum manually for now because using cached introduces small desync between frustum and camera position
 			let projection_matrix = camera_projection.get_projection_matrix() * camera_transform_z_only.compute_matrix().inverse();
@@ -398,9 +422,13 @@ pub fn calc_visible_rows(
 			
 			camera_reader.x_right = x_right;
 			
-			camera_reader.visible_rows = (y_top - y_bottom) / row_height;
+			let new_visible_rows = (y_top - y_bottom) / row_height;
 			
-			camera_reader.row = (camera_reader.visible_rows / 2.0).floor() as u32;
+			// if (camera_reader.visible_rows - new_visible_rows).abs() > 0.01 {
+			// 	println!("new visible rows: {} camera z: {}", new_visible_rows, camera_pos_z);
+			// }
+			
+			camera_reader.visible_rows = new_visible_rows;
 		}
 	}
 }

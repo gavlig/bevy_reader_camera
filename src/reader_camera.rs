@@ -48,8 +48,6 @@ pub struct ReaderCamera {
 	///
 	pub column: u32,
 	///
-	pub row: u32,
-	///
 	pub row_offset_in: u32,
 	///
 	pub row_offset_out: i32,
@@ -159,7 +157,6 @@ impl Default for ReaderCamera {
 			vertical_scroll						: 0.0,
 			horizontal_scroll					: 0.0,
 			column								: 51,
-			row									: 19,
 			row_offset_in						: 0,
 			row_offset_out						: 0,
 			visible_rows						: 40.0,
@@ -253,25 +250,25 @@ impl ReaderCamera {
 	}
 
 	pub fn row_inc(&mut self, delta_seconds: f32) {
-		self.key_scroll_delay_row_inc += delta_seconds;
+		// self.key_scroll_delay_row_inc += delta_seconds;
 
-		self.set_pitch(-1.0);
+		// self.set_pitch(-1.0);
 
-		if self.key_scroll_delay_row_inc >= self.key_scroll_delay_seconds {
-			self.row += 1;
-			self.key_scroll_delay_row_inc -= self.key_scroll_delay_seconds;
-		}
+		// if self.key_scroll_delay_row_inc >= self.key_scroll_delay_seconds {
+		// 	self.row += 1;
+		// 	self.key_scroll_delay_row_inc -= self.key_scroll_delay_seconds;
+		// }
 
 	}
 
 	pub fn row_dec(&mut self, delta_seconds: f32) {
-		self.key_scroll_delay_row_dec += delta_seconds;
+		// self.key_scroll_delay_row_dec += delta_seconds;
 
-		self.set_pitch(1.0);
+		// self.set_pitch(1.0);
 
-		if self.row > 0 && self.key_scroll_delay_row_dec >= self.key_scroll_delay_seconds {
-			self.row -= 1;
-			self.key_scroll_delay_row_dec -= self.key_scroll_delay_seconds;
-		}
+		// if self.row > 0 && self.key_scroll_delay_row_dec >= self.key_scroll_delay_seconds {
+		// 	self.row -= 1;
+		// 	self.key_scroll_delay_row_dec -= self.key_scroll_delay_seconds;
+		// }
 	}
 }
