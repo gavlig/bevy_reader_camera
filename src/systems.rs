@@ -62,17 +62,19 @@ pub fn fly_mode_keyboard(
 			Vec3::ZERO
 		};
 
-		camera.velocity += accel * delta_seconds;
+		camera.velocity = accel * delta_seconds * 2.5;
 
 		// clamp within max speed
-		if camera.velocity.length() > camera.max_speed {
-			camera.velocity = camera.velocity.normalize() * camera.max_speed;
-		}
+		// if camera.velocity.length() > camera.max_speed {
+		// 	camera.velocity = camera.velocity.normalize() * camera.max_speed;
+		// }
+
+		camera.target_translation = camera.target_translation + camera.velocity;
 
 		let from			= camera_transform.translation;
-		let to				= camera_transform.translation + camera.velocity;
+		let to				= camera.target_translation;
 
-		let inertia			= (delta_seconds / camera.translation_easing_seconds).min(1.0);
+		let inertia			= (delta_seconds / 0.3).min(1.0);
 		camera_transform.translation = from.lerp(to, inertia);
 	}
 }

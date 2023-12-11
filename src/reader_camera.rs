@@ -161,7 +161,7 @@ impl Default for ReaderCamera {
 	fn default() -> Self {
 		Self {
 			accel								: 1.5,
-			max_speed							: 0.5,
+			max_speed							: 100.0,
 			sensitivity							: 3.0,
 			swipe_sensitivity					: 0.0,
 			mouse_scroll_sensitivity			: 1.0,
