@@ -203,9 +203,9 @@ impl Default for ReaderCamera {
 			key_left							: KeyCode::A,
 			key_right							: KeyCode::D,
 			key_up								: KeyCode::Space,
-			key_down							: KeyCode::LShift,
+			key_down							: KeyCode::ShiftLeft,
 			key_perspective						: KeyCode::Return,
-			mod_perspective						: Some(KeyCode::LControl),
+			mod_perspective						: Some(KeyCode::ControlLeft),
 			perspective							: true,
 
 			enabled_scroll						: true,

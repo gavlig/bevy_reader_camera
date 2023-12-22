@@ -81,7 +81,7 @@ pub fn calc_frustum_y_border(frustum: &Frustum, z_in: f32, top: bool) -> f32 {
 
 	let plane_index = if top { FrustumPlane::Top } else { FrustumPlane::Bottom } as usize;
 
-	let plane = &frustum.planes[plane_index].normal_d();
+	let plane = &frustum.half_spaces[plane_index].normal_d();
 
 	(-plane.w - plane.z * z) / plane.y // assume x = 0
 }
@@ -91,7 +91,7 @@ pub fn calc_frustum_x_border(frustum: &Frustum, z_in: f32, right: bool) -> f32 {
 
 	let plane_index = if right { FrustumPlane::Right } else { FrustumPlane::Left } as usize;
 
-	let plane = &frustum.planes[plane_index].normal_d();
+	let plane = &frustum.half_spaces[plane_index].normal_d();
 
 	(-plane.w - plane.z * z) / plane.x // assume y = 0
 }
@@ -124,7 +124,7 @@ pub fn delta_wheel_from_events(
 ) -> Option<f32> {
 	let scroll_event_occured = !mouse_wheel_event_reader.is_empty();
 	let mut wheel_scalar	= 0.0;
-	for event in mouse_wheel_event_reader.iter() {
+	for event in mouse_wheel_event_reader.read() {
 		// scale the event magnitude per pixel or per line
 		let scroll_amount = match event.unit {
 			MouseScrollUnit::Line => { event.y },
@@ -140,7 +140,7 @@ pub fn delta_mouse_from_events(
 	mut mouse_motion_event_reader	: EventReader<MouseMotion>
 ) -> Vec2 {
 	let mut delta_mouse: Vec2 = Vec2::ZERO;
-	for event in mouse_motion_event_reader.iter() {
+	for event in mouse_motion_event_reader.read() {
 		delta_mouse += event.delta;
 	}
 

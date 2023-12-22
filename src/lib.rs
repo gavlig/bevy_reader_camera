@@ -36,14 +36,14 @@ pub struct ReaderCameraPlugin;
 impl Plugin for ReaderCameraPlugin {
 	fn build(&self, app: &mut App) {
 		app
-			.add_system(systems::fly_mode_keyboard)
-			.add_system(systems::fly_mode_mouse)
-			.add_system(systems::follow_mode_mouse)
+			.add_systems(Update, systems::fly_mode_keyboard)
+			.add_systems(Update, systems::fly_mode_mouse)
+			.add_systems(Update, systems::follow_mode_mouse)
 
 			// PreUpdate because camera transform has to be the same for all systems during update
 			// and because Frustum gets desynced with camera transform and that makes the amount of visible rows jitter
-			.add_system(systems::reader_mode.in_base_set(CoreSet::PreUpdate).in_set(ReaderCameraUpdate))
-			.add_system(systems::calc_frustum_data.in_base_set(CoreSet::PreUpdate).after(systems::reader_mode))
+			.add_systems(PreUpdate, systems::reader_mode.in_set(ReaderCameraUpdate))
+			.add_systems(PreUpdate, systems::calc_frustum_data.after(systems::reader_mode))
 		;
 	}
 }

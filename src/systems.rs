@@ -72,7 +72,7 @@ pub fn fly_mode_mouse(
 	mut q_camera: Query<(&mut ReaderCamera, &mut Transform)>,
 ) {
 	let mut delta: Vec2 = Vec2::ZERO;
-	for event in mouse_motion_event_reader.iter() {
+	for event in mouse_motion_event_reader.read() {
 		delta += event.delta;
 	}
 	if delta.is_nan() {
@@ -115,7 +115,7 @@ pub fn follow_mode_mouse(
 		assert!(camera.target_entity != None);
 
 		let mut delta: Vec2 = Vec2::ZERO;
-		for event in mouse_motion_event_reader.iter() {
+		for event in mouse_motion_event_reader.read() {
 			delta += event.delta;
 		}
 		if delta.is_nan() {
@@ -136,7 +136,7 @@ pub fn follow_mode_mouse(
 
 		let pixels_per_line = 53.0;
 		let mut scalar = 1.0;
-		for event in mouse_wheel_event_reader.iter() {
+		for event in mouse_wheel_event_reader.read() {
 			// scale the event magnitude per pixel or per line
 			let scroll_amount = match event.unit {
 				MouseScrollUnit::Line => event.y,
