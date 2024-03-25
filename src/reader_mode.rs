@@ -1,7 +1,5 @@
 use bevy :: prelude	:: { * };
 
-use lerp :: Lerp;
-
 use super :: TextDescriptor;
 use super :: reader_camera :: { * };
 use super :: util :: { * };

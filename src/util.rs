@@ -4,7 +4,7 @@ use bevy :: render	:: { camera :: { * }, primitives :: Frustum };
 use bevy :: input	:: mouse :: { MouseScrollUnit, MouseWheel, MouseMotion };
 
 pub fn movement_axis(
-	input: &Res<Input<KeyCode>>,
+	input: &Res<ButtonInput<KeyCode>>,
 	plus: KeyCode,
 	minus: KeyCode,
 ) -> f32 {

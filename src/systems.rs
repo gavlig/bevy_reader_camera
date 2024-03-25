@@ -13,7 +13,7 @@ use crate :: KeyScroll;
 
 pub fn fly_mode_keyboard(
 		time		: Res<Time>,
-		key_code	: Res<Input<KeyCode>>,
+		key_code	: Res<ButtonInput<KeyCode>>,
 	mut q_camera	: Query<(&mut ReaderCamera, &mut Transform, &mut Projection)>,
 ) {
 	let delta_seconds = time.delta_seconds();
@@ -169,7 +169,7 @@ use crate :: reader_mode as reader;
 
 pub fn reader_mode(
 		time						: Res<Time>,
-		key							: Res<Input<KeyCode>>,
+		key							: Res<ButtonInput<KeyCode>>,
 		mouse_motion_event_reader	: EventReader<MouseMotion>,
 		mouse_wheel_event_reader	: EventReader<MouseWheel>,
 	mut q_camera					: Query<(Entity, &mut ReaderCamera, &Projection)>,
@@ -179,9 +179,9 @@ pub fn reader_mode(
 	let pixels_per_line = 20.0;
 
 	let key_scroll_state =
-	if key.pressed(KeyCode::Up) && !key.just_pressed(KeyCode::Up) {
+	if key.pressed(KeyCode::ArrowUp) && !key.just_pressed(KeyCode::ArrowUp) {
 		Some(KeyScroll::Up)
-	} else if key.pressed(KeyCode::Down) && !key.just_pressed(KeyCode::Down) {
+	} else if key.pressed(KeyCode::ArrowDown) && !key.just_pressed(KeyCode::ArrowDown) {
 		Some(KeyScroll::Down)
 	} else {
 		None
